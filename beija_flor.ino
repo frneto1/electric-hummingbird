@@ -1,34 +1,29 @@
 #define LED 5
 
 // L298N
-#define IN1 26
-#define IN2 27
-#define ENA 14
-#define IN3 33
-#define IN4 32
-#define ENB 25
+#define IN1 8
+#define IN2 7
+#define ENA 9
+
+#define IN3 6
+#define IN4 4
+#define ENB 10
 
 // Botões
-#define BOTAO1 18
-#define BOTAO2 19
-#define BOTAO3 21
-
-// PWM
-#define MOTOR_FREQ 30000
-#define MOTOR_RES 8
-
-#define LED_FREQ 5000
-#define LED_RES 8
+#define BOTAO1 2
+#define BOTAO2 3
+#define BOTAO3 12
 
 void setup() {
+  Serial.begin(9600);
+
   // LED
   pinMode(LED, OUTPUT);
-  ledcAttach(LED, LED_FREQ, LED_RES);
 
-  // Botões
-  pinMode(BOTAO1, INPUT);
-  pinMode(BOTAO2, INPUT);
-  pinMode(BOTAO3, INPUT);
+  // Botões (AGORA CORRETO)
+  pinMode(BOTAO1, INPUT_PULLUP);
+  pinMode(BOTAO2, INPUT_PULLUP);
+  pinMode(BOTAO3, INPUT_PULLUP);
 
   // Motores
   pinMode(IN1, OUTPUT);
@@ -36,31 +31,32 @@ void setup() {
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
 
-  ledcAttach(ENA, MOTOR_FREQ, MOTOR_RES);
-  ledcAttach(ENB, MOTOR_FREQ, MOTOR_RES);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
 
   pararMotor();
 }
 
 void loop() {
 
-  if (digitalRead(BOTAO1) == HIGH) {
-    executarModo(100, 300); // lento
+  if (digitalRead(BOTAO1) == LOW) {
+    Serial.println("Modo 1");
+    executarModo(90, 300); // lento
   }
-  else if (digitalRead(BOTAO2) == HIGH) {
-    executarModo(120, 200); // médio
+  else if (digitalRead(BOTAO2) == LOW) {
+    Serial.println("Modo 2");
+    executarModo(115, 200); // médio
   }
-  else if (digitalRead(BOTAO3) == HIGH) {
+  else if (digitalRead(BOTAO3) == LOW) {
+    Serial.println("Modo 3");
     executarModo(140, 120); // rápido
   }
   else {
     pararMotor();
-    ledcWrite(LED, 0);
+    analogWrite(LED, 0);
   }
 }
 
-// ============================
-// FUNÇÕES
 // ============================
 
 void executarModo(int velocidade, int tempoBatimento) {
@@ -69,35 +65,35 @@ void executarModo(int velocidade, int tempoBatimento) {
 }
 
 void moverMotor(int velocidade) {
+  // Motor A
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
+
+  // Motor B
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 
-  ledcWrite(ENA, velocidade);
-  ledcWrite(ENB, velocidade);
+  analogWrite(ENA, velocidade);
+  analogWrite(ENB, velocidade);
 }
 
 void pararMotor() {
-  ledcWrite(ENA, 0);
-  ledcWrite(ENB, 0);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
 }
 
 // LED
 void batimentoSuave(int tempo) {
 
-  // subida rápida
   for (int i = 0; i < 255; i += 5) {
-    ledcWrite(LED, i);
+    analogWrite(LED, i);
     delay(tempo / 50);
   }
 
-  // descida lenta
   for (int i = 255; i > 0; i -= 3) {
-    ledcWrite(LED, i);
+    analogWrite(LED, i);
     delay(tempo / 40);
   }
 
-  // pausa
   delay(tempo);
 }
